@@ -1,15 +1,33 @@
 # Node.js TypeScript API Boilerplate
 
-A minimalist boilerplate for building Node.js APIs using TypeScript and Express.
+A robust boilerplate for building scalable Node.js APIs using TypeScript and Express.js.
 
 ## Features
 
-- TypeScript support
-- Express.js for API routing
-- ES Modules
-- Development server with hot-reload
-- Production build setup
-- Basic project structure
+- **TypeScript Support**: Full TypeScript integration with proper configuration
+- **Express.js**: Fast, unopinionated web framework
+- **Environment Configuration**: Using `dotenv` with Zod schema validation
+- **Error Handling**: Global error handler with custom error classes
+- **Code Quality**:
+  - ESLint for code linting
+  - Prettier for code formatting
+- **Development Tools**:
+  - Hot reload with ts-node-dev
+  - Source map support
+  - Path aliases
+
+## Project Structure
+
+```
+src/
+  ├── config/         # Configuration files
+  │   └── env.ts     # Environment variables configuration
+  ├── middleware/     # Express middlewares
+  │   ├── errorHandler.ts  # Global error handling middleware
+  │   └── errors.ts       # Custom error classes and factories
+  ├── app.ts         # Express app setup and middleware
+  └── server.ts      # Server entry point
+```
 
 ## Getting Started
 
@@ -20,54 +38,84 @@ A minimalist boilerplate for building Node.js APIs using TypeScript and Express.
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
+
+```bash
+git clone https://github.com/danielevilela/nodejs-api-boilerplate.git
+cd nodejs-api-boilerplate
+```
+
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
-### Development
+3. Create environment files:
 
-To start the development server with hot-reload:
+```bash
+cp .env.example .env
+```
+
+4. Start development server:
 
 ```bash
 npm run dev
 ```
 
-The server will start on port 3000 by default. You can change this by setting the `PORT` environment variable.
+The server will start on the port specified in your .env file (default: 3000).
 
-### Building for Production
+## Environment Variables
 
-To create a production build:
-
-```bash
-npm run build
-```
-
-This will create a `dist` folder with the compiled JavaScript files.
-
-### Running in Production
-
-To run the production build:
+The following environment variables can be configured in your .env file:
 
 ```bash
-npm start
+NODE_ENV=development    # development, production, or test
+PORT=3000              # Port number for the server
+API_PREFIX=/api        # Prefix for all API routes
 ```
 
-## Project Structure
-
-```
-src/
-  ├── app.ts      # Express app setup and middleware
-  └── server.ts   # Server entry point
-```
+All environment variables are validated using Zod schema validation.
 
 ## Available Scripts
 
 - `npm run dev` - Start development server with hot-reload
 - `npm run build` - Build for production
 - `npm start` - Run production server
+- `npm run lint` - Check for linting issues
+- `npm run lint:fix` - Fix linting issues
+- `npm run format` - Format code using Prettier
+- `npm run format:check` - Check if files are properly formatted
 
-## License
+## Code Quality
 
-ISC
+### ESLint
+
+The project uses ESLint with TypeScript support for code linting. Configuration can be found in `eslint.config.js`.
+
+Key features:
+
+- TypeScript-specific rules
+- Prettier integration
+- Custom rules for unused variables and type safety
+
+### Prettier
+
+Prettier is configured for consistent code formatting. Configuration can be found in `.prettierrc`.
+
+Settings include:
+
+- Single quotes
+- Semicolons
+- 100 characters line length
+- 2 spaces indentation
+
+## Error Handling
+
+The project includes a robust error handling system:
+
+- Custom `AppError` class for operational errors
+- Global error handling middleware
+- Built-in error factories for common HTTP errors
+- Environment-specific error responses
+- Validation error handling with Zod

@@ -26,11 +26,7 @@ describe('Validation Middleware', () => {
       body: { name: 'John Doe' },
     };
 
-    await validate(schema)(
-      mockRequest as Request,
-      mockResponse as Response,
-      nextFunction
-    );
+    await validate(schema)(mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(nextFunction).toHaveBeenCalledWith();
     expect(nextFunction).toHaveBeenCalledTimes(1);
@@ -41,11 +37,7 @@ describe('Validation Middleware', () => {
       body: { name: 'Jo' },
     };
 
-    await validate(schema)(
-      mockRequest as Request,
-      mockResponse as Response,
-      nextFunction
-    );
+    await validate(schema)(mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(nextFunction).toHaveBeenCalledWith(expect.any(Error));
     expect(nextFunction).toHaveBeenCalledTimes(1);

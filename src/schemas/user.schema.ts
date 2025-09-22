@@ -1,5 +1,50 @@
 import { z } from 'zod';
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - username
+ *         - email
+ *       properties:
+ *         username:
+ *           type: string
+ *           minLength: 3
+ *           maxLength: 50
+ *           example: johndoe
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: john@example.com
+ *     CreateUserInput:
+ *       allOf:
+ *         - $ref: '#/components/schemas/User'
+ *         - type: object
+ *           required:
+ *             - password
+ *           properties:
+ *             password:
+ *               type: string
+ *               format: password
+ *               minLength: 8
+ *               example: Passw0rd
+ *     UpdateUserInput:
+ *       type: object
+ *       properties:
+ *         username:
+ *           type: string
+ *           minLength: 3
+ *           maxLength: 50
+ *           example: johndoe
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: john@example.com
+ */
+
 export const createUserSchema = z.object({
   body: z.object({
     username: z

@@ -1,5 +1,7 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { config } from './config/env';
+import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/errors';
 import userRoutes from './routes/user.routes';
@@ -22,6 +24,17 @@ apiRouter.use('/users', userRoutes);
 
 // Mount API router with prefix
 app.use(config.apiPrefix, apiRouter);
+
+// Swagger documentation
+if (config.env === 'development') {
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+  // Serve Swagger spec as JSON
+  app.get('/docs.json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+}
 
 // Handle 404 errors
 app.use((_req, _res, next) => {

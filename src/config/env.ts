@@ -7,8 +7,12 @@ dotenv.config();
 // Define environment variables schema
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).default(3000),
+  PORT: z.coerce.number().default(3000),
   API_PREFIX: z.string().default('/api'),
+  // Security settings
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000), // 15 minutes
+  RATE_LIMIT_MAX: z.coerce.number().default(100), // 100 requests per window
+  CORS_ORIGIN: z.string().default('*'), // In production, change to specific origins
 });
 
 // Validate and transform environment variables
@@ -22,4 +26,9 @@ export const config = {
   isDevelopment: envVars.NODE_ENV === 'development',
   isProduction: envVars.NODE_ENV === 'production',
   isTest: envVars.NODE_ENV === 'test',
+  security: {
+    rateLimitWindowMs: envVars.RATE_LIMIT_WINDOW_MS,
+    rateLimitMax: envVars.RATE_LIMIT_MAX,
+    corsOrigin: envVars.CORS_ORIGIN,
+  },
 } as const;

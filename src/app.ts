@@ -2,6 +2,7 @@ import express from 'express';
 import { config } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/errors';
+import userRoutes from './routes/user.routes';
 
 const app = express();
 
@@ -15,6 +16,9 @@ const apiRouter = express.Router();
 apiRouter.get('/health', (_req, res) => {
   res.json({ status: 'ok', env: config.env });
 });
+
+// Mount user routes
+apiRouter.use('/users', userRoutes);
 
 // Mount API router with prefix
 app.use(config.apiPrefix, apiRouter);

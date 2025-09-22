@@ -1,5 +1,7 @@
 # Node.js TypeScript API Boilerplate
 
+[![CI](https://github.com/danielevilela/nodejs-api-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/danielevilela/nodejs-api-boilerplate/actions/workflows/ci.yml)
+
 A robust boilerplate for building scalable Node.js APIs using TypeScript and Express.js.
 
 ## Features
@@ -119,3 +121,26 @@ The project includes a robust error handling system:
 - Built-in error factories for common HTTP errors
 - Environment-specific error responses
 - Validation error handling with Zod
+
+## Testing
+
+The project uses Jest for testing and includes:
+
+- Unit tests for middleware and utilities
+- Integration tests for API endpoints
+- Test coverage reporting
+
+### Available Test Commands
+
+- `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage reporting
+
+### Continuous Integration
+
+The project is set up with GitHub Actions to run the following checks on every pull request and push to main:
+
+- Linting and code style checks
+- Unit and integration tests
+- Test coverage reporting to Codecov
+- Node.js version compatibility (18.x and 20.x)

@@ -7,7 +7,7 @@ dotenv.config();
 // Define environment variables schema
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).default('3000'),
+  PORT: z.string().transform(Number).default(3000),
   API_PREFIX: z.string().default('/api'),
 });
 

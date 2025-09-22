@@ -20,5 +20,5 @@ export const badRequest = (message = 'Bad Request'): AppError => createHttpError
 export const unauthorized = (message = 'Unauthorized'): AppError => createHttpError(401, message);
 export const forbidden = (message = 'Forbidden'): AppError => createHttpError(403, message);
 export const conflict = (message = 'Conflict'): AppError => createHttpError(409, message);
-export const internalServer = (message = 'Internal Server Error'): AppError => 
+export const internalServer = (message = 'Internal Server Error'): AppError =>
   createHttpError(500, message);

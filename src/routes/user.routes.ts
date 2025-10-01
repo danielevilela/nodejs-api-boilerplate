@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { validate } from '../middleware/validate';
+import { cacheMiddleware, invalidateCache } from '../middleware/cache';
 import { createUserSchema, getUserSchema, updateUserSchema } from '../schemas/user.schema';
 
 const router = Router();
@@ -70,13 +71,19 @@ router.post('/', validate(createUserSchema), (req, res) => {
  *       404:
  *         $ref: '#/components/responses/Error'
  */
-router.get('/:id', validate(getUserSchema), (req, res) => {
-  // In a real app, you would fetch the user from the database
-  res.json({
-    message: 'User retrieved successfully',
-    userId: req.params.id,
-  });
-});
+router.get(
+  '/:id',
+  validate(getUserSchema),
+  cacheMiddleware({ ttl: 600, keyPrefix: 'user' }), // Cache for 10 minutes
+  (req, res) => {
+    // In a real app, you would fetch the user from the database
+    res.json({
+      message: 'User retrieved successfully',
+      userId: req.params.id,
+      cached: res.get('X-Cache') === 'HIT',
+    });
+  }
+);
 
 /**
  * @swagger
@@ -116,13 +123,92 @@ router.get('/:id', validate(getUserSchema), (req, res) => {
  *       404:
  *         $ref: '#/components/responses/Error'
  */
-router.patch('/:id', validate(updateUserSchema), (req, res) => {
+router.patch('/:id', validate(updateUserSchema), async (req, res) => {
   // In a real app, you would update the user in the database
+
+  // Invalidate related cache entries when user is updated
+  try {
+    await invalidateCache(`user:GET:/api/users/${req.params.id}*`);
+    req.log?.info({ userId: req.params.id }, 'User cache invalidated');
+  } catch (error) {
+    req.log?.warn({ err: error, userId: req.params.id }, 'Cache invalidation failed');
+  }
+
   res.json({
     message: 'User updated successfully',
     userId: req.params.id,
     updates: req.body,
   });
 });
+
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users (paginated)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of users per page
+ *     responses:
+ *       200:
+ *         description: Users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ */
+router.get(
+  '/',
+  cacheMiddleware({ ttl: 300, keyPrefix: 'users_list' }), // Cache for 5 minutes
+  (req, res) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    // Simulate user data
+    const mockUsers = Array.from({ length: limit }, (_, i) => ({
+      id: (page - 1) * limit + i + 1,
+      username: `user${(page - 1) * limit + i + 1}`,
+      email: `user${(page - 1) * limit + i + 1}@example.com`,
+    }));
+
+    res.json({
+      message: 'Users retrieved successfully',
+      users: mockUsers,
+      pagination: {
+        page,
+        limit,
+        total: 100, // Mock total
+      },
+      cached: res.get('X-Cache') === 'HIT',
+    });
+  }
+);
 
 export default router;

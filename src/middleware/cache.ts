@@ -183,6 +183,7 @@ export async function getCacheStats(): Promise<{
   totalKeys: number;
   memoryUsage: string;
   hitRate?: number;
+  keys?: string[];
 }> {
   try {
     // Return empty stats if Redis is not available
@@ -191,12 +192,16 @@ export async function getCacheStats(): Promise<{
         totalKeys: 0,
         memoryUsage: 'unavailable',
         hitRate: 0,
+        keys: [],
       };
     }
 
     const info = await cache.info('memory');
     const keyspace = await cache.info('keyspace');
     const stats = await cache.info('stats');
+
+    // Get all keys in the cache database
+    const allKeys = await cache.keys('*');
 
     // Parse memory info
     const memoryMatch = info.match(/used_memory_human:([^\r\n]+)/);
@@ -222,6 +227,7 @@ export async function getCacheStats(): Promise<{
       totalKeys,
       memoryUsage,
       hitRate,
+      keys: allKeys,
     };
   } catch (error) {
     logger.error({ err: error }, 'Failed to get cache stats');

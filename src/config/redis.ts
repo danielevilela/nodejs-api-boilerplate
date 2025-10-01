@@ -113,11 +113,29 @@ class RedisManager {
   }
 
   public async disconnect(): Promise<void> {
-    if (this.redisAvailable) {
-      await Promise.all([this.cache.quit(), this.logs.quit(), this.pubsub.quit()]);
-      logger.info('All Redis connections closed');
-    } else {
-      logger.info('Redis was not connected, no need to disconnect');
+    try {
+      const disconnectPromises = [];
+      
+      if (this.cache?.status === 'ready') {
+        disconnectPromises.push(this.cache.quit());
+      }
+      if (this.logs?.status === 'ready') {
+        disconnectPromises.push(this.logs.quit());
+      }
+      if (this.pubsub?.status === 'ready') {
+        disconnectPromises.push(this.pubsub.quit());
+      }
+      
+      if (disconnectPromises.length > 0) {
+        await Promise.all(disconnectPromises);
+        this.redisAvailable = false;
+        logger.info('All Redis connections closed');
+      } else {
+        logger.info('Redis was not connected, no need to disconnect');
+      }
+    } catch (error) {
+      logger.warn({ err: error }, 'Error during Redis disconnect, but continuing');
+      this.redisAvailable = false;
     }
   }
 

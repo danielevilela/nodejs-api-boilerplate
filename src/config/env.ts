@@ -13,6 +13,10 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000), // 15 minutes
   RATE_LIMIT_MAX: z.coerce.number().default(100), // 100 requests per window
   CORS_ORIGIN: z.string().default('*'), // In production, change to specific origins
+  // Redis settings
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
 });
 
 // Validate and transform environment variables
@@ -30,5 +34,10 @@ export const config = {
     rateLimitWindowMs: envVars.RATE_LIMIT_WINDOW_MS,
     rateLimitMax: envVars.RATE_LIMIT_MAX,
     corsOrigin: envVars.CORS_ORIGIN,
+  },
+  redis: {
+    host: envVars.REDIS_HOST,
+    port: envVars.REDIS_PORT,
+    password: envVars.REDIS_PASSWORD,
   },
 } as const;

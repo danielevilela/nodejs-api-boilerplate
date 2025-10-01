@@ -1,0 +1,121 @@
+import Redis from 'ioredis';
+import { logger } from '../utils/logger';
+
+interface RedisConfig {
+  host: string;
+  port: number;
+  password?: string;
+  db: number;
+  retryDelayOnFailover: number;
+  maxRetriesPerRequest: number;
+  lazyConnect: boolean;
+}
+
+import { config } from './env';
+
+// Default Redis configuration
+const defaultConfig: RedisConfig = {
+  host: config.redis.host,
+  port: config.redis.port,
+  password: config.redis.password,
+  db: 0,
+  retryDelayOnFailover: 100,
+  maxRetriesPerRequest: 3,
+  lazyConnect: true,
+};
+
+// Create Redis instances for different use cases
+class RedisManager {
+  private static instance: RedisManager;
+  public cache: Redis;
+  public logs: Redis;
+  public pubsub: Redis;
+
+  private constructor() {
+    // Cache Redis instance (db: 0)
+    this.cache = new Redis({
+      ...defaultConfig,
+      db: 0,
+    });
+
+    // Logs Redis instance (db: 1)
+    this.logs = new Redis({
+      ...defaultConfig,
+      db: 1,
+    });
+
+    // Pub/Sub Redis instance (db: 2)
+    this.pubsub = new Redis({
+      ...defaultConfig,
+      db: 2,
+    });
+
+    this.setupEventHandlers();
+  }
+
+  public static getInstance(): RedisManager {
+    if (!RedisManager.instance) {
+      RedisManager.instance = new RedisManager();
+    }
+    return RedisManager.instance;
+  }
+
+  private setupEventHandlers(): void {
+    // Cache Redis events
+    this.cache.on('connect', () => {
+      logger.info('Redis cache connected');
+    });
+
+    this.cache.on('error', (error) => {
+      logger.error({ err: error }, 'Redis cache connection error');
+    });
+
+    // Logs Redis events
+    this.logs.on('connect', () => {
+      logger.info('Redis logs connected');
+    });
+
+    this.logs.on('error', (error) => {
+      logger.error({ err: error }, 'Redis logs connection error');
+    });
+
+    // Pub/Sub Redis events
+    this.pubsub.on('connect', () => {
+      logger.info('Redis pub/sub connected');
+    });
+
+    this.pubsub.on('error', (error) => {
+      logger.error({ err: error }, 'Redis pub/sub connection error');
+    });
+  }
+
+  public async disconnect(): Promise<void> {
+    await Promise.all([this.cache.quit(), this.logs.quit(), this.pubsub.quit()]);
+    logger.info('All Redis connections closed');
+  }
+
+  public async healthCheck(): Promise<{ cache: boolean; logs: boolean; pubsub: boolean }> {
+    try {
+      const [cacheResult, logsResult, pubsubResult] = await Promise.allSettled([
+        this.cache.ping(),
+        this.logs.ping(),
+        this.pubsub.ping(),
+      ]);
+
+      return {
+        cache: cacheResult.status === 'fulfilled' && cacheResult.value === 'PONG',
+        logs: logsResult.status === 'fulfilled' && logsResult.value === 'PONG',
+        pubsub: pubsubResult.status === 'fulfilled' && pubsubResult.value === 'PONG',
+      };
+    } catch (error) {
+      logger.error({ err: error }, 'Redis health check failed');
+      return { cache: false, logs: false, pubsub: false };
+    }
+  }
+}
+
+// Export singleton instance
+export const redis = RedisManager.getInstance();
+
+// Export individual clients for convenience
+export const { cache, logs, pubsub } = redis;

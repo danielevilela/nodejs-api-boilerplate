@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/danielevilela/nodejs-api-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/danielevilela/nodejs-api-boilerplate/actions/workflows/ci.yml)
 
-A production-ready, scalable Node.js API boilerplate with Redis caching, structured logging, comprehensive security, and modern development tools.
+**🚀 A scalable Node.js API boilerplate** built with TypeScript, Redis caching, structured logging, comprehensive security, and modern development tools. Perfect for kickstarting an API project with solid foundations and best practices built-in.
+
+> **Quick Start**: Clone, install dependencies, start Redis, and you're ready to build! All the boilerplate code is done for you.
 
 ## Features
 
@@ -39,6 +41,13 @@ A production-ready, scalable Node.js API boilerplate with Redis caching, structu
 - **Code Quality**: ESLint + Prettier with TypeScript-specific rules
 - **Path Aliases**: Clean imports with @ aliases
 - **Docker Support**: Redis containerization with Docker Compose
+
+### 📖 **API Documentation**
+
+- **Swagger/OpenAPI**: Interactive API documentation with real-time testing
+- **Auto-Generated Docs**: Swagger UI with endpoint exploration and testing
+- **Schema Validation**: Automatic request/response schema documentation
+- **Development Integration**: Live documentation updates during development
 
 ### 🧪 **Testing & CI**
 
@@ -125,6 +134,22 @@ npm run dev
 ```
 
 The server will start on the port specified in your .env file (default: 3000).
+
+### 📖 Swagger API Documentation
+
+Once your server is running, explore the interactive API documentation:
+
+```bash
+# Open Swagger UI in your browser
+http://localhost:3000/api-docs
+```
+
+**Swagger Features:**
+
+- **Interactive Testing**: Test all endpoints directly from the browser
+- **Schema Validation**: View request/response schemas with examples
+- **Real-time Updates**: Documentation updates automatically with code changes
+- **Try It Out**: Execute API calls with sample data and see live responses
 
 ### Quick Test
 
@@ -289,7 +314,7 @@ Settings include:
 
 ### Structured Logging with Pino
 
-The project uses **Pino** for enterprise-grade, high-performance logging:
+The project uses **Pino** for high-performance logging:
 
 - **JSON Structured**: Machine-readable logs for easy parsing and analysis
 - **HTTP Request Logging**: Automatic request/response logging with performance metrics

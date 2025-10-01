@@ -6,6 +6,24 @@
 
 > **Quick Start**: Clone, install dependencies, start Redis, and you're ready to build! All the boilerplate code is done for you.
 
+## Integrations
+
+Explore real-world API integrations and examples in our dedicated integration branches:
+
+### 🎵 Spotify Integration
+
+**[View Spotify Integration Branch](https://github.com/danielevilela/nodejs-api-boilerplate/tree/spotify-integration)**
+
+A complete Spotify Web API integration example featuring:
+
+- OAuth 2.0 authentication flow
+- Playlist management and track retrieval
+- Advanced caching strategies for API responses
+- Rate limiting and error handling for external APIs
+- Testing with mock Spotify API responses
+
+This integration demonstrates how to extend the boilerplate with real-world API integrations while maintaining the same architectural patterns and best practices.
+
 ## Features
 
 ### 🚀 **Core Framework**

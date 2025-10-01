@@ -11,10 +11,10 @@ describe('Cache Integration', () => {
   beforeAll(async () => {
     // Ensure development mode for cache management endpoints
     process.env.NODE_ENV = 'development';
-    
+
     // Wait for Redis connections and check availability
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    
+
     try {
       const health = await redis.healthCheck();
       isRedisAvailable = health.cache && health.logs && health.pubsub;

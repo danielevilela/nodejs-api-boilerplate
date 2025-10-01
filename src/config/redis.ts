@@ -115,7 +115,7 @@ class RedisManager {
   public async disconnect(): Promise<void> {
     try {
       const disconnectPromises = [];
-      
+
       if (this.cache?.status === 'ready') {
         disconnectPromises.push(this.cache.quit());
       }
@@ -125,7 +125,7 @@ class RedisManager {
       if (this.pubsub?.status === 'ready') {
         disconnectPromises.push(this.pubsub.quit());
       }
-      
+
       if (disconnectPromises.length > 0) {
         await Promise.all(disconnectPromises);
         this.redisAvailable = false;

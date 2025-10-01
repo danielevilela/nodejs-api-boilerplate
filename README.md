@@ -10,6 +10,8 @@ A robust boilerplate for building scalable Node.js APIs using TypeScript and Exp
 - **Express.js**: Fast, unopinionated web framework
 - **Environment Configuration**: Using `dotenv` with Zod schema validation
 - **Error Handling**: Global error handler with custom error classes
+- **Logging**: Structured logging with Pino for high performance
+- **Security**: Helmet security headers, CORS, and rate limiting
 - **Code Quality**:
   - ESLint for code linting
   - Prettier for code formatting
@@ -20,13 +22,16 @@ A robust boilerplate for building scalable Node.js APIs using TypeScript and Exp
 
 ## Project Structure
 
-```
+```text
 src/
   ├── config/         # Configuration files
   │   └── env.ts     # Environment variables configuration
   ├── middleware/     # Express middlewares
   │   ├── errorHandler.ts  # Global error handling middleware
-  │   └── errors.ts       # Custom error classes and factories
+  │   ├── errors.ts       # Custom error classes and factories
+  │   └── security.ts     # Security middleware (Helmet, CORS, rate limiting)
+  ├── utils/          # Utility functions
+  │   └── logger.ts   # Pino logger configuration
   ├── app.ts         # Express app setup and middleware
   └── server.ts      # Server entry point
 ```
@@ -75,6 +80,12 @@ The following environment variables can be configured in your .env file:
 NODE_ENV=development    # development, production, or test
 PORT=3000              # Port number for the server
 API_PREFIX=/api        # Prefix for all API routes
+
+# Security Settings
+RATE_LIMIT_WINDOW_MS=900000  # 15 minutes in milliseconds
+RATE_LIMIT_MAX=100          # Maximum requests per window
+CORS_ORIGIN=*               # Use specific origins in production
+TRUST_PROXY=false          # Set to true if behind a reverse proxy
 ```
 
 All environment variables are validated using Zod schema validation.
@@ -112,6 +123,45 @@ Settings include:
 - 100 characters line length
 - 2 spaces indentation
 
+## Logging
+
+The project uses Pino for high-performance, structured logging:
+
+- **Structured Logging**: JSON-formatted logs for easy parsing and analysis
+- **Request Logging**: Automatic HTTP request/response logging
+- **Performance**: Extremely fast logging with minimal overhead
+- **Development Mode**: Pretty-printed, colorized logs for better readability
+- **Production Mode**: Optimized JSON output for log aggregation systems
+
+### Log Levels
+
+- `debug`: Detailed information for diagnosing problems
+- `info`: General information about application flow
+- `warn`: Warning messages for potentially harmful situations
+- `error`: Error events that still allow the application to continue
+- `fatal`: Very severe error events that may abort the application
+
+### Usage Example
+
+```typescript
+import { logger } from './utils/logger';
+
+// Log different levels
+logger.info('User created successfully', { userId: 123 });
+logger.warn('Rate limit approaching', { ip: '192.168.1.1', requests: 95 });
+logger.error({ err }, 'Database connection failed');
+```
+
+## Security
+
+The project includes multiple security layers:
+
+- **Helmet**: Security headers to protect against common vulnerabilities
+- **CORS**: Cross-Origin Resource Sharing configuration
+- **Rate Limiting**: Prevents brute force attacks and API abuse
+- **Request Size Limiting**: Limits request body size to prevent DoS attacks
+- **Security Headers**: XSS protection, content type options, and more
+
 ## Error Handling
 
 The project includes a robust error handling system:
@@ -121,6 +171,7 @@ The project includes a robust error handling system:
 - Built-in error factories for common HTTP errors
 - Environment-specific error responses
 - Validation error handling with Zod
+- Structured error logging with Pino
 
 ## Testing
 

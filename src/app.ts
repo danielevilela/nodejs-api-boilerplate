@@ -6,8 +6,13 @@ import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/errors';
 import { corsConfig, rateLimiter, securityHeaders } from './middleware/security';
 import userRoutes from './routes/user.routes';
+import { logger } from './utils/logger';
+import pinoHttp from 'pino-http';
 
 const app = express();
+
+// Attach Pino HTTP logger middleware
+app.use(pinoHttp({ logger }));
 
 // Security middleware
 app.use(securityHeaders); // Apply Helmet security headers
@@ -21,7 +26,8 @@ app.use(express.json({ limit: '10kb' })); // Limit body size to 10kb
 const apiRouter = express.Router();
 
 // Basic health check route
-apiRouter.get('/health', (_req, res) => {
+apiRouter.get('/health', (req, res) => {
+  req.log.info('Health check requested');
   res.json({ status: 'ok', env: config.env });
 });
 

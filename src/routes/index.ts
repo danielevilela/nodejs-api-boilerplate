@@ -6,6 +6,49 @@ import playlistRoutes from './playlist.routes';
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: API health status
+
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 env:
+ *                   type: string
+ *                   example: development
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 redis:
+ *                   type: object
+ *                   properties:
+ *                     cache:
+ *                       type: boolean
+ *                     logs:
+ *                       type: boolean
+ *                     pubsub:
+ *                       type: boolean
+ *                 cache:
+ *                   type: object
+ *                   properties:
+ *                     totalKeys:
+ *                       type: integer
+ *                     memoryUsage:
+ *                       type: string
+ *                     hitRate:
+ *                       type: number
+ */
 // Basic health check route
 router.get('/health', async (req, res) => {
   req.log.info('Health check requested');

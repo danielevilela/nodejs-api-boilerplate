@@ -157,6 +157,7 @@ SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 ### 🔐 Authentication Flow Used:
 
 This API uses **Client Credentials Flow** which provides:
+
 - ✅ Access to public playlists and tracks
 - ✅ Search functionality across Spotify's catalog
 - ✅ Artist and album information
@@ -213,6 +214,7 @@ node src/scripts/test-spotify.js
 ```
 
 This script will:
+
 - ✅ Verify your credentials are set correctly
 - ✅ Test authentication with Spotify
 - ✅ Find working playlist IDs you can use
@@ -239,6 +241,7 @@ curl http://localhost:3000/api/cache/stats
 #### 3. **Interactive API Testing**
 
 Use Swagger UI for easy testing:
+
 - Open `http://localhost:3000/docs` in your browser
 - Find the `/api/playlists/{id}` endpoint
 - Click "Try it out"
@@ -688,6 +691,7 @@ The project includes **GitHub Actions** CI/CD pipeline:
 Retrieves tracks from a Spotify playlist with intelligent caching.
 
 **Parameters:**
+
 - `id` (path, required): Spotify playlist ID
 - `limit` (query, optional): Number of tracks to return (1-50, default: 50)
 - `offset` (query, optional): Number of tracks to skip (default: 0)
@@ -706,11 +710,13 @@ GET /api/playlists/1h0CEZCm6IbFTbxThn6Xcs
 ```
 
 **Response Headers:**
+
 - `X-Cache`: `MISS` (first request) or `HIT` (cached)
 - `X-Cache-Key`: Cache key used for this request
 - `Content-Type`: `application/json`
 
 **Example Response:**
+
 ```json
 {
   "message": "Playlist tracks retrieved successfully",
@@ -738,6 +744,7 @@ GET /api/playlists/1h0CEZCm6IbFTbxThn6Xcs
 ```
 
 **Error Responses:**
+
 - `400`: Invalid playlist ID format
 - `404`: Playlist not found or not accessible
 - `503`: Spotify API not configured

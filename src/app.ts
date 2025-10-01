@@ -27,7 +27,13 @@ app.use(config.apiPrefix, apiRoutes);
 
 // Swagger documentation
 if (config.env === 'development') {
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  const swaggerOptions = {
+    swaggerOptions: {
+      displayRequestDuration: true,
+    },
+  };
+
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
 
   // Serve Swagger spec as JSON
   app.get('/docs.json', (_req, res) => {

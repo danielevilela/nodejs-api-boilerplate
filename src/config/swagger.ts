@@ -51,6 +51,22 @@ const options: swaggerJsdoc.Options = {
           },
         },
       },
+      headers: {
+        'X-Cache': {
+          description: 'Cache status (HIT, MISS, SKIP, or ERROR)',
+          schema: {
+            type: 'string',
+            enum: ['HIT', 'MISS', 'SKIP', 'ERROR'],
+          },
+        },
+        'X-Cache-Key': {
+          description: 'Cache key used for storing the response',
+          schema: {
+            type: 'string',
+            example: 'playlist:GET:/api/playlists/37i9dQZF1DXcBWIGoYBM5M',
+          },
+        },
+      },
     },
   },
   apis: ['./src/routes/*.ts', './src/schemas/*.ts'], // files containing annotations

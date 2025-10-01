@@ -38,6 +38,11 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Playlist tracks retrieved successfully
+ *         headers:
+ *           X-Cache:
+ *             $ref: '#/components/headers/X-Cache'
+ *           X-Cache-Key:
+ *             $ref: '#/components/headers/X-Cache-Key'
  *         content:
  *           application/json:
  *             schema:

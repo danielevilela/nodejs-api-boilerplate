@@ -12,7 +12,7 @@ const router = express.Router();
 const mockPlaylistData = {
   '37i9dQZF1DXcBWIGoYBM5M': {
     id: '37i9dQZF1DXcBWIGoYBM5M',
-    name: 'Mock Today\'s Top Hits',
+    name: "Mock Today's Top Hits",
     tracks: [
       {
         id: 'mock-track-1',
@@ -97,7 +97,10 @@ router.get(
         cached: res.getHeader('X-Cache') === 'HIT',
       });
     } catch (error) {
-      req.log?.error({ err: error, playlistId: req.params.id }, 'Failed to fetch mock playlist tracks');
+      req.log?.error(
+        { err: error, playlistId: req.params.id },
+        'Failed to fetch mock playlist tracks'
+      );
 
       res.status(500).json({
         message: 'Failed to fetch playlist tracks',

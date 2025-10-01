@@ -5,7 +5,7 @@ import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/errors';
 import { corsConfig, rateLimiter, securityHeaders } from './middleware/security';
-import { cacheMiddleware, getCacheStats } from './middleware/cache';
+import { getCacheStats } from './middleware/cache';
 import { redis } from './config/redis';
 import userRoutes from './routes/user.routes';
 import { logger } from './utils/logger';

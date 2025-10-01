@@ -1,12 +1,20 @@
-# Node.js TypeScript API Boilerplate
+# Node.js TypeScript API Boilerplate with Spotify Integration
 
 [![CI](https://github.com/danielevilela/nodejs-api-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/danielevilela/nodejs-api-boilerplate/actions/workflows/ci.yml)
 
-**🚀 A scalable Node.js API boilerplate** built with TypeScript, Redis caching, structured logging, comprehensive security, and modern development tools. Perfect for kickstarting an API project with solid foundations and best practices built-in.
+**🚀 A scalable Node.js API boilerplate** built with TypeScript, Redis caching, Spotify Web API integration, structured logging, comprehensive security, and modern development tools. Perfect for building music-focused APIs with solid foundations and best practices built-in.
 
-> **Quick Start**: Clone, install dependencies, start Redis, and you're ready to build! All the boilerplate code is done for you.
+> **Quick Start**: Clone, install dependencies, configure Spotify credentials, start Redis, and you're ready to build music APIs! All the boilerplate code is done for you.
 
 ## Features
+
+### 🎵 **Spotify Web API Integration**
+
+- **Official SDK**: Built with `@spotify/web-api-ts-sdk` for reliability and type safety
+- **Client Credentials Flow**: Server-to-server authentication for public data access
+- **Playlist Endpoints**: Fetch playlist tracks with comprehensive metadata
+- **Smart Caching**: Redis-powered caching for Spotify API responses (30-minute TTL)
+- **Error Handling**: Robust error handling with detailed logging for API failures
 
 ### 🚀 **Core Framework**
 
@@ -65,7 +73,8 @@ src/
   │       └── cache.test.ts # Cache integration tests
   ├── config/              # Configuration files
   │   ├── env.ts          # Environment variables with Zod validation
-  │   └── redis.ts        # Redis configuration and connection management
+  │   ├── redis.ts        # Redis configuration and connection management
+  │   └── swagger.ts      # Swagger/OpenAPI configuration
   ├── middleware/          # Express middlewares
   │   ├── cache.ts        # Redis caching middleware with TTL & invalidation
   │   ├── errorHandler.ts # Global error handling with structured logging
@@ -73,14 +82,18 @@ src/
   │   ├── security.ts     # Security middleware (Helmet, CORS, rate limiting)
   │   └── validate.ts     # Request validation middleware with Zod
   ├── routes/              # API route definitions
-  │   └── user.routes.ts  # User endpoints with caching integration
+  │   ├── index.ts        # Centralized route management
+  │   └── playlist.routes.ts # Spotify playlist endpoints with caching
   ├── schemas/             # Zod validation schemas
-  │   └── user.schema.ts  # User request/response schemas
+  │   └── playlist.schema.ts # Playlist request/response schemas
+  ├── services/            # External service integrations
+  │   └── spotify.ts      # Spotify Web API service with official SDK
   ├── scripts/             # Utility scripts
-  │   └── test-redis.ts   # Redis connection testing and health checks
+  │   ├── test-redis.ts   # Redis connection testing and health checks
+  │   └── test-spotify.js # Spotify API connection and authentication testing
   ├── utils/               # Utility functions
   │   └── logger.ts       # Pino logger with development/production modes
-  ├── app.ts              # Express app with Redis health checks & cache management
+  ├── app.ts              # Express app setup and middleware configuration
   └── server.ts           # Server entry point with graceful shutdown
 ```
 
@@ -112,8 +125,45 @@ npm install
 
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your configuration including Spotify credentials
 ```
+
+**Required Spotify Configuration:**
+
+Add your Spotify application credentials to `.env`:
+
+```bash
+# Spotify Web API Configuration
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+```
+
+### 🎵 How to Get Spotify API Credentials:
+
+1. **Visit Spotify Developer Dashboard**: Go to [https://developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
+2. **Log in** with your Spotify account (create one if needed)
+3. **Create a New App**:
+   - Click "Create an App"
+   - Enter App Name: `Your API Name`
+   - Enter App Description: `Node.js API for playlist integration`
+   - Check the terms of service boxes
+   - Click "Create"
+4. **Get Your Credentials**:
+   - Click on your newly created app
+   - You'll see your **Client ID** - copy this
+   - Click "Show Client Secret" to reveal your **Client Secret** - copy this
+   - Add both to your `.env` file
+
+### 🔐 Authentication Flow Used:
+
+This API uses **Client Credentials Flow** which provides:
+- ✅ Access to public playlists and tracks
+- ✅ Search functionality across Spotify's catalog
+- ✅ Artist and album information
+- ❌ No access to user's private data
+- ❌ Limited access to some Spotify curated playlists
+
+Perfect for server-to-server applications that don't need user authentication!
 
 4. **Start Redis (using Docker - recommended):**
 
@@ -151,23 +201,56 @@ http://localhost:3000/api-docs
 - **Real-time Updates**: Documentation updates automatically with code changes
 - **Try It Out**: Execute API calls with sample data and see live responses
 
-### Quick Test
+### 🧪 Testing Spotify Integration
 
-Test the API and caching functionality:
+#### 1. **Test Spotify Connection First**
+
+Before testing the API endpoints, verify your Spotify credentials work:
 
 ```bash
-# Test basic endpoint
+# Run the Spotify connection tester
+node src/scripts/test-spotify.js
+```
+
+This script will:
+- ✅ Verify your credentials are set correctly
+- ✅ Test authentication with Spotify
+- ✅ Find working playlist IDs you can use
+- ✅ Provide curl commands for testing
+
+#### 2. **Test API Endpoints**
+
+Once your Spotify connection works, test the API:
+
+```bash
+# Test basic health endpoint
 curl http://localhost:3000/api/health
 
-# Test caching (first request - cache miss)
-curl -i http://localhost:3000/api/users/550e8400-e29b-41d4-a716-446655440000
+# Test Spotify playlist endpoint (use a working playlist ID from the test script)
+curl -i "http://localhost:3000/api/playlists/1h0CEZCm6IbFTbxThn6Xcs?limit=5"
 
-# Test caching (second request - cache hit)
-curl -i http://localhost:3000/api/users/550e8400-e29b-41d4-a716-446655440000
+# Test caching (second request should show X-Cache: HIT)
+curl -i "http://localhost:3000/api/playlists/1h0CEZCm6IbFTbxThn6Xcs?limit=5"
 
 # View cache statistics (development mode)
 curl http://localhost:3000/api/cache/stats
 ```
+
+#### 3. **Interactive API Testing**
+
+Use Swagger UI for easy testing:
+- Open `http://localhost:3000/docs` in your browser
+- Find the `/api/playlists/{id}` endpoint
+- Click "Try it out"
+- Enter a playlist ID (e.g., `1h0CEZCm6IbFTbxThn6Xcs`)
+- Set limit to `5` for quick testing
+- Click "Execute"
+
+#### 📝 **Playlist ID Notes**
+
+- **Working Example**: `1h0CEZCm6IbFTbxThn6Xcs` (Classical music playlist)
+- **May Not Work**: `37i9dQZF1DXcBWIGoYBM5M` (Spotify's curated playlists often restricted)
+- **Finding More**: Use the test script to discover accessible playlists
 
 ## Environment Variables
 
@@ -178,6 +261,10 @@ The following environment variables can be configured in your .env file:
 NODE_ENV=development    # development, production, or test
 PORT=3000              # Port number for the server
 API_PREFIX=/api        # Prefix for all API routes
+
+# Spotify Web API Configuration
+SPOTIFY_CLIENT_ID=your_client_id       # Spotify application client ID
+SPOTIFY_CLIENT_SECRET=your_secret       # Spotify application client secret
 
 # Redis Configuration
 REDIS_HOST=localhost   # Redis server hostname
@@ -206,6 +293,80 @@ All environment variables are validated using Zod schema validation with detaile
 - `npm run docker:redis` - Start Redis container with Docker Compose
 - `npm run docker:down` - Stop all Docker containers
 - `npm run test:redis` - Test Redis connection and operations
+
+### Spotify API Testing
+
+- `node src/scripts/test-spotify.js` - Test Spotify API connection and find working playlists
+
+## 🎵 Spotify Integration Guide
+
+### ⚡ Quick Start
+
+1. **Get Spotify Credentials**: [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. **Add to .env**: `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
+3. **Test Connection**: `node src/scripts/test-spotify.js`
+4. **Try API**: `curl "http://localhost:3000/api/playlists/1h0CEZCm6IbFTbxThn6Xcs?limit=5"`
+5. **View Docs**: `http://localhost:3000/docs`
+
+### 🔧 Setup Checklist
+
+Before using the Spotify features, ensure you have:
+
+- [ ] Created a Spotify Developer account
+- [ ] Created a new app in Spotify Dashboard
+- [ ] Added `SPOTIFY_CLIENT_ID` to your `.env` file
+- [ ] Added `SPOTIFY_CLIENT_SECRET` to your `.env` file
+- [ ] Ran `node src/scripts/test-spotify.js` successfully
+- [ ] Found at least one working playlist ID
+
+### 🚨 Troubleshooting Common Issues
+
+#### "Playlist not found" (404 Error)
+
+**Problem**: Getting 404 errors when accessing playlists
+**Cause**: Client Credentials flow has limited access to certain playlists
+**Solutions**:
+
+1. **Use the test script**: `node src/scripts/test-spotify.js` to find working playlists
+2. **Try public user playlists**: Spotify's curated playlists often aren't accessible
+3. **Create your own public playlist**: Make a playlist public in Spotify and use its ID
+
+#### "Spotify API not configured" (503 Error)
+
+**Problem**: API returns 503 Service Unavailable
+**Cause**: Missing or incorrect Spotify credentials
+**Solutions**:
+
+1. Check your `.env` file has both `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
+2. Verify credentials are correct (no extra spaces or quotes)
+3. Restart your development server after adding credentials
+
+#### Authentication Errors
+
+**Problem**: "Authentication failed" messages
+**Cause**: Invalid credentials or network issues
+**Solutions**:
+
+1. Double-check credentials in Spotify Dashboard
+2. Ensure you copied the full Client ID and Secret
+3. Check if your app is properly created in Spotify Dashboard
+4. Verify internet connection for API calls
+
+### 🎯 Finding Playlist IDs
+
+To find Spotify playlist IDs:
+
+1. **From Spotify App**:
+   - Right-click any playlist → "Share" → "Copy Spotify URI"
+   - Extract ID from `spotify:playlist:PLAYLIST_ID`
+
+2. **From Web Player**:
+   - Open playlist in browser
+   - Copy ID from URL: `https://open.spotify.com/playlist/PLAYLIST_ID`
+
+3. **Using Our Test Script**:
+   - Run `node src/scripts/test-spotify.js`
+   - Script will test multiple playlists and show working ones
 
 ### Code Quality
 
@@ -518,46 +679,89 @@ The project includes **GitHub Actions** CI/CD pipeline:
 
 ## API Documentation
 
-### Example Endpoints
+### 🎵 Spotify Web API Endpoints
 
-#### User Management
+#### Playlist Tracks Endpoint
+
+**GET** `/api/playlists/{id}`
+
+Retrieves tracks from a Spotify playlist with intelligent caching.
+
+**Parameters:**
+- `id` (path, required): Spotify playlist ID
+- `limit` (query, optional): Number of tracks to return (1-50, default: 50)
+- `offset` (query, optional): Number of tracks to skip (default: 0)
+
+**Example Requests:**
 
 ```bash
-# Get user (with caching)
-GET /api/users/:id
-Response Headers: X-Cache: MISS/HIT, X-Cache-Key: user:GET:/api/users/123
+# Get first 5 tracks from a playlist
+GET /api/playlists/1h0CEZCm6IbFTbxThn6Xcs?limit=5
 
-# List users (with pagination and caching)
-GET /api/users?page=1&limit=10
-Response Headers: X-Cache: MISS/HIT, X-Cache-Key: users_list:GET:/api/users?page=1&limit=10
+# Get tracks 20-30 from a playlist (pagination)
+GET /api/playlists/1h0CEZCm6IbFTbxThn6Xcs?limit=10&offset=20
 
-# Create user (no caching)
-POST /api/users
-Body: { "username": "john", "email": "john@example.com", "password": "Password123" }
-
-# Update user (with cache invalidation)
-PATCH /api/users/:id
-Body: { "username": "john_updated" }
+# Get all tracks (up to 50, default)
+GET /api/playlists/1h0CEZCm6IbFTbxThn6Xcs
 ```
+
+**Response Headers:**
+- `X-Cache`: `MISS` (first request) or `HIT` (cached)
+- `X-Cache-Key`: Cache key used for this request
+- `Content-Type`: `application/json`
+
+**Example Response:**
+```json
+{
+  "message": "Playlist tracks retrieved successfully",
+  "playlistId": "1h0CEZCm6IbFTbxThn6Xcs",
+  "tracks": [
+    {
+      "id": "17mTPR6CmBQu8AsgBRPsw4",
+      "name": "Carnival of the Animals: The Swan",
+      "artist": "Camille Saint-Saëns, Isata Kanneh-Mason",
+      "album": "Carnival",
+      "duration_ms": 150146,
+      "preview_url": null,
+      "spotify_url": "https://open.spotify.com/track/17mTPR6CmBQu8AsgBRPsw4",
+      "added_at": "2025-09-24T13:43:02Z",
+      "image": "https://i.scdn.co/image/ab67616d0000b27391edd074acff0cf1690a3733"
+    }
+  ],
+  "pagination": {
+    "total": 234,
+    "limit": 5,
+    "offset": 0
+  },
+  "cached": false
+}
+```
+
+**Error Responses:**
+- `400`: Invalid playlist ID format
+- `404`: Playlist not found or not accessible
+- `503`: Spotify API not configured
 
 #### System Endpoints
 
 ```bash
-# Health check with Redis status
+# Health check with Redis and Spotify status
 GET /api/health
 Response: {
-  "status": "healthy",
-  "redis": { "cache": "connected", "logs": "connected", "pubsub": "connected" },
-  "cache": { "enabled": true }
+  "status": "ok",
+  "env": "development",
+  "timestamp": "2025-01-01T00:00:00.000Z",
+  "redis": { "cache": true, "logs": true, "pubsub": true },
+  "cache": { "totalKeys": 0, "memoryUsage": "1.42M", "hitRate": 27.54 }
 }
 
 # Cache statistics (development only)
 GET /api/cache/stats
-Response: { "message": "Cache statistics", "stats": { "totalKeys": 5, "memoryUsage": "1.2MB" } }
+Response: { "message": "Cache statistics retrieved", "stats": { "totalKeys": 5, "memoryUsage": "1.2MB", "hitRate": 85.3, "keys": ["playlist:GET:/api/playlists/123"] } }
 
 # Clear cache (development only)
-DELETE /api/cache/clear?pattern=user:*
-Response: { "message": "Cache cleared", "pattern": "user:*", "deleted": 3 }
+DELETE /api/cache/clear?pattern=playlist:*
+Response: { "message": "Cache cleared", "pattern": "playlist:*", "deleted": 3, "keys": 3 }
 ```
 
 ### Response Format

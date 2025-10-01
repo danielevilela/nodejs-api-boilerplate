@@ -17,6 +17,9 @@ const envSchema = z.object({
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional(),
+  // Spotify API settings
+  SPOTIFY_CLIENT_ID: z.string().optional(),
+  SPOTIFY_CLIENT_SECRET: z.string().optional(),
 });
 
 // Validate and transform environment variables
@@ -39,5 +42,9 @@ export const config = {
     host: envVars.REDIS_HOST,
     port: envVars.REDIS_PORT,
     password: envVars.REDIS_PASSWORD,
+  },
+  spotify: {
+    clientId: envVars.SPOTIFY_CLIENT_ID,
+    clientSecret: envVars.SPOTIFY_CLIENT_SECRET,
   },
 } as const;

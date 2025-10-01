@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { cache } from '../config/redis';
+import { cache, redis } from '../config/redis';
 import { logger } from '../utils/logger';
 
 interface CacheOptions {
@@ -36,6 +36,12 @@ export function cacheMiddleware(options: CacheOptions = {}) {
   return async (req: CachedRequest, res: Response, next: NextFunction) => {
     // Skip caching for non-GET requests or if explicitly disabled
     if (req.method !== 'GET' || skipCache) {
+      return next();
+    }
+
+    // Skip caching if Redis is not available
+    if (!redis.isAvailable()) {
+      res.set('X-Cache', 'SKIP');
       return next();
     }
 
@@ -84,28 +90,30 @@ export function cacheMiddleware(options: CacheOptions = {}) {
       // Override res.json to cache the response
       const originalJson = res.json.bind(res);
       res.json = function (data: unknown) {
-        // Cache the response asynchronously
-        setImmediate(async () => {
-          try {
-            await cache.setex(cacheKey, ttl, JSON.stringify(data));
-            logger.debug(
-              {
-                cacheKey,
-                ttl,
-                dataSize: JSON.stringify(data).length,
-              },
-              'Response cached'
-            );
-          } catch (error) {
-            logger.error(
-              {
-                err: error,
-                cacheKey,
-              },
-              'Failed to cache response'
-            );
-          }
-        });
+        // Cache the response asynchronously only if Redis is available
+        if (redis.isAvailable()) {
+          setImmediate(async () => {
+            try {
+              await cache.setex(cacheKey, ttl, JSON.stringify(data));
+              logger.debug(
+                {
+                  cacheKey,
+                  ttl,
+                  dataSize: JSON.stringify(data).length,
+                },
+                'Response cached'
+              );
+            } catch (error) {
+              logger.error(
+                {
+                  err: error,
+                  cacheKey,
+                },
+                'Failed to cache response'
+              );
+            }
+          });
+        }
 
         return originalJson(data);
       };
@@ -123,6 +131,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
       );
 
       // Continue without caching on error
+      res.set('X-Cache', 'ERROR');
       next();
     }
   };
@@ -133,6 +142,12 @@ export function cacheMiddleware(options: CacheOptions = {}) {
  */
 export async function invalidateCache(pattern: string): Promise<number> {
   try {
+    // Skip invalidation if Redis is not available
+    if (!redis.isAvailable()) {
+      logger.warn('Redis not available, skipping cache invalidation');
+      return 0;
+    }
+
     const keys = await cache.keys(pattern);
     if (keys.length === 0) {
       return 0;
@@ -170,6 +185,15 @@ export async function getCacheStats(): Promise<{
   hitRate?: number;
 }> {
   try {
+    // Return empty stats if Redis is not available
+    if (!redis.isAvailable()) {
+      return {
+        totalKeys: 0,
+        memoryUsage: 'unavailable',
+        hitRate: 0,
+      };
+    }
+
     const info = await cache.info('memory');
     const keyspace = await cache.info('keyspace');
     const stats = await cache.info('stats');
@@ -210,6 +234,12 @@ export async function getCacheStats(): Promise<{
  */
 export async function setCache(key: string, data: unknown, ttl: number = 300): Promise<void> {
   try {
+    // Skip setting cache if Redis is not available
+    if (!redis.isAvailable()) {
+      logger.warn('Redis not available, skipping manual cache set');
+      return;
+    }
+
     await cache.setex(key, ttl, JSON.stringify(data));
     logger.debug({ key, ttl }, 'Manual cache set');
   } catch (error) {
@@ -223,6 +253,12 @@ export async function setCache(key: string, data: unknown, ttl: number = 300): P
  */
 export async function getCache(key: string): Promise<unknown | null> {
   try {
+    // Return null if Redis is not available
+    if (!redis.isAvailable()) {
+      logger.debug('Redis not available, returning null for cache get');
+      return null;
+    }
+
     const cached = await cache.get(key);
     if (cached) {
       logger.debug({ key }, 'Manual cache get - hit');

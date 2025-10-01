@@ -9,6 +9,8 @@ interface RedisConfig {
   retryDelayOnFailover: number;
   maxRetriesPerRequest: number;
   lazyConnect: boolean;
+  retryDelayOnTimeout?: number;
+  connectTimeout?: number;
 }
 
 import { config } from './env';
@@ -19,9 +21,11 @@ const defaultConfig: RedisConfig = {
   port: config.redis.port,
   password: config.redis.password,
   db: 0,
-  retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3,
+  retryDelayOnFailover: config.isDevelopment ? 100 : 1000,
+  maxRetriesPerRequest: config.isDevelopment ? 3 : 1, // Reduce retries in CI
   lazyConnect: true,
+  connectTimeout: config.isDevelopment ? 10000 : 5000, // 5s timeout in CI
+  retryDelayOnTimeout: config.isDevelopment ? 200 : 1000,
 };
 
 // Create Redis instances for different use cases
@@ -30,6 +34,8 @@ class RedisManager {
   public cache: Redis;
   public logs: Redis;
   public pubsub: Redis;
+  private redisAvailable: boolean = false;
+  private connectionAttempted: boolean = false;
 
   private constructor() {
     // Cache Redis instance (db: 0)
@@ -63,11 +69,20 @@ class RedisManager {
   private setupEventHandlers(): void {
     // Cache Redis events
     this.cache.on('connect', () => {
+      this.redisAvailable = true;
       logger.info('Redis cache connected');
     });
 
     this.cache.on('error', (error) => {
-      logger.error({ err: error }, 'Redis cache connection error');
+      if (!this.connectionAttempted || config.isDevelopment) {
+        logger.error({ err: error }, 'Redis cache connection error');
+      }
+      this.redisAvailable = false;
+      this.connectionAttempted = true;
+    });
+
+    this.cache.on('close', () => {
+      this.redisAvailable = false;
     });
 
     // Logs Redis events
@@ -76,7 +91,9 @@ class RedisManager {
     });
 
     this.logs.on('error', (error) => {
-      logger.error({ err: error }, 'Redis logs connection error');
+      if (!this.connectionAttempted || config.isDevelopment) {
+        logger.error({ err: error }, 'Redis logs connection error');
+      }
     });
 
     // Pub/Sub Redis events
@@ -85,13 +102,23 @@ class RedisManager {
     });
 
     this.pubsub.on('error', (error) => {
-      logger.error({ err: error }, 'Redis pub/sub connection error');
+      if (!this.connectionAttempted || config.isDevelopment) {
+        logger.error({ err: error }, 'Redis pub/sub connection error');
+      }
     });
   }
 
+  public isAvailable(): boolean {
+    return this.redisAvailable;
+  }
+
   public async disconnect(): Promise<void> {
-    await Promise.all([this.cache.quit(), this.logs.quit(), this.pubsub.quit()]);
-    logger.info('All Redis connections closed');
+    if (this.redisAvailable) {
+      await Promise.all([this.cache.quit(), this.logs.quit(), this.pubsub.quit()]);
+      logger.info('All Redis connections closed');
+    } else {
+      logger.info('Redis was not connected, no need to disconnect');
+    }
   }
 
   public async healthCheck(): Promise<{ cache: boolean; logs: boolean; pubsub: boolean }> {

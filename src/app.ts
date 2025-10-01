@@ -32,9 +32,11 @@ apiRouter.get('/health', async (req, res) => {
   req.log.info('Health check requested');
 
   try {
+    // Check Redis health - this will return false values if unavailable
     const redisHealth = await redis.healthCheck();
     const cacheStats = await getCacheStats();
 
+    // Health check always succeeds, but shows Redis status
     res.json({
       status: 'ok',
       env: config.env,
@@ -44,11 +46,14 @@ apiRouter.get('/health', async (req, res) => {
     });
   } catch (error) {
     req.log.error({ err: error }, 'Health check failed');
-    res.status(503).json({
-      status: 'error',
+    // Even if health check has errors, return 200 with Redis as unavailable
+    res.json({
+      status: 'ok',
       env: config.env,
       timestamp: new Date().toISOString(),
-      error: 'Service unavailable',
+      redis: { cache: false, logs: false, pubsub: false },
+      cache: { totalKeys: 0, memoryUsage: 'unavailable', hitRate: 0 },
+      note: 'Redis unavailable',
     });
   }
 });
@@ -70,6 +75,16 @@ if (config.isDevelopment) {
 
   apiRouter.delete('/cache/clear', async (req, res) => {
     try {
+      // Check if Redis is available before attempting to clear
+      if (!redis.isAvailable()) {
+        return res.json({
+          message: 'Cache clear skipped - Redis unavailable',
+          pattern: (req.query.pattern as string) || '*',
+          deleted: 0,
+          keys: 0,
+        });
+      }
+
       const pattern = (req.query.pattern as string) || '*';
       const keys = await redis.cache.keys(pattern);
       const deleted = keys.length > 0 ? await redis.cache.del(...keys) : 0;

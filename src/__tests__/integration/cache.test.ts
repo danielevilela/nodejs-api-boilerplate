@@ -6,22 +6,45 @@ import { redis, cache } from '../../config/redis';
 describe('Cache Integration', () => {
   const testUserId1 = randomUUID();
   const testUserId2 = randomUUID();
+  let isRedisAvailable = false;
 
   beforeAll(async () => {
     // Ensure development mode for cache management endpoints
     process.env.NODE_ENV = 'development';
-    // Wait for Redis connections to be ready
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    // Wait for Redis connections and check availability
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    try {
+      const health = await redis.healthCheck();
+      isRedisAvailable = health.cache && health.logs && health.pubsub;
+      console.log('Redis availability check:', { isRedisAvailable, health });
+    } catch (error) {
+      console.log('Redis not available during tests:', error);
+      isRedisAvailable = false;
+    }
   });
 
   afterAll(async () => {
-    // Clean up Redis connections
-    await redis.disconnect();
+    // Clean up Redis connections if available
+    if (isRedisAvailable) {
+      try {
+        await redis.disconnect();
+      } catch (error) {
+        console.log('Error disconnecting Redis:', error);
+      }
+    }
   });
 
   beforeEach(async () => {
-    // Clear cache before each test
-    await cache.flushdb();
+    // Clear cache before each test only if Redis is available
+    if (isRedisAvailable) {
+      try {
+        await cache.flushdb();
+      } catch (error) {
+        console.log('Error flushing cache:', error);
+      }
+    }
   });
 
   describe('Cache Headers', () => {

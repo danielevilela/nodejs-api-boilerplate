@@ -56,11 +56,6 @@ jobs:
         image: redis:7-alpine
         ports:
           - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     
     steps:
       - uses: actions/checkout@v4
@@ -71,13 +66,8 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Wait for Redis
-        run: |
-          until redis-cli ping; do
-            echo "Waiting for Redis..."
-            sleep 1
-          done
-          echo "Redis is ready!"
+      - name: Wait for Redis to start
+        run: sleep 10
 
       - name: Run tests
         run: npm run test:coverage

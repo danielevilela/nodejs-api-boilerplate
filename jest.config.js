@@ -21,4 +21,6 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   globalTeardown: '<rootDir>/src/__tests__/teardown.ts',
+  // Force exit in CI environments where worker cleanup is problematic
+  forceExit: process.env.CI === 'true',
 };
